@@ -21,6 +21,7 @@
 #ifndef MIO_PAGE_HEADER
 #define MIO_PAGE_HEADER
 
+#include <cstddef>
 #ifdef _WIN32
 # include <windows.h>
 #else
@@ -48,7 +49,7 @@ enum class access_mode
  */
 inline size_t page_size()
 {
-    static const size_t page_size = []
+  static const size_t page_size = static_cast<size_t>([]
     {
 #ifdef _WIN32
         SYSTEM_INFO SystemInfo;
@@ -57,7 +58,7 @@ inline size_t page_size()
 #else
         return sysconf(_SC_PAGE_SIZE);
 #endif
-    }();
+    }());
     return page_size;
 }
 
