@@ -44,13 +44,13 @@ namespace win {
 /** Returns the 4 upper bytes of an 8-byte integer. */
 inline DWORD int64_high(int64_t n) noexcept
 {
-    return n >> 32;
+    return static_cast<DWORD>(n >> 32);
 }
 
 /** Returns the 4 lower bytes of an 8-byte integer. */
 inline DWORD int64_low(int64_t n) noexcept
 {
-    return n & 0xffffffff;
+    return static_cast<DWORD>(n & 0xffffffff);
 }
 
 inline std::wstring s_2_ws(const std::string& s)
@@ -61,7 +61,7 @@ inline std::wstring s_2_ws(const std::string& s)
         ret.resize(s.size());
         int wide_char_count = MultiByteToWideChar(CP_UTF8, 0, s.c_str(),
             static_cast<int>(s.size()), &ret[0], static_cast<int>(s.size()));
-        ret.resize(wide_char_count);
+        ret.resize(static_cast<std::size_t>(wide_char_count));
     }
     return ret;
 }
@@ -108,7 +108,7 @@ inline std::error_code last_error() noexcept
 {
     std::error_code error;
 #ifdef _WIN32
-    error.assign(GetLastError(), std::system_category());
+    error.assign(static_cast<int>(GetLastError()), std::system_category());
 #else
     error.assign(errno, std::system_category());
 #endif
@@ -148,7 +148,7 @@ inline size_t query_file_size(file_handle_type handle, std::error_code& error)
         error = detail::last_error();
         return 0;
     }
-	return static_cast<int64_t>(file_size.QuadPart);
+	return static_cast<size_t>(file_size.QuadPart);
 #else // POSIX
     struct stat sbuf;
     if(::fstat(handle, &sbuf) == -1)
@@ -194,7 +194,7 @@ inline mmap_context memory_map(const file_handle_type file_handle, const int64_t
             mode == access_mode::read ? FILE_MAP_READ : FILE_MAP_WRITE,
             win::int64_high(aligned_offset),
             win::int64_low(aligned_offset),
-            length_to_map));
+            static_cast<size_t>(length_to_map)));
     if(mapping_start == nullptr)
     {
         // Close file handle if mapping it failed.
